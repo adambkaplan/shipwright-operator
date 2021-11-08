@@ -7,12 +7,13 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+
 	"github.com/go-logr/logr"
 	mfc "github.com/manifestival/controller-runtime-client"
 	"github.com/manifestival/manifestival"
 	tektonoperatorv1alpha1 "github.com/tektoncd/operator/pkg/apis/operator/v1alpha1"
 	tektonoperatorv1alpha1client "github.com/tektoncd/operator/pkg/client/clientset/versioned/typed/operator/v1alpha1"
-	"path/filepath"
 
 	corev1 "k8s.io/api/core/v1"
 	crdclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"

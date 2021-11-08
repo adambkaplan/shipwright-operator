@@ -31,22 +31,26 @@ rules:
 - apiGroups:
   - apps
   resources:
-  - daemonsets
   - deployments
-  - replicasets
-  - statefulsets
   verbs:
   - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - apps
   resourceNames:
-  - shipwright-build
+  - shipwright-build-controller
+  resources:
+  - deployments
+  verbs:
+  - delete
+  - patch
+  - update
+- apiGroups:
+  - apps
+  resourceNames:
+  - shipwright-build-controller
   resources:
   - deployments/finalizers
   verbs:
@@ -54,15 +58,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - configmaps
-  - endpoints
-  - events
-  - persistentvolumeclaims
-  - pods
-  - secrets
-  - serviceaccounts
-  - services
-  - services/finalizers
+  - namespaces
   verbs:
   - create
   - delete
@@ -72,19 +68,29 @@ rules:
   - update
   - watch
 - apiGroups:
-  - monitoring.coreos.com
+  - ""
   resources:
-  - servicemonitors
+  - serviceaccounts
   verbs:
   - create
   - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resourceNames:
+  - shipwright-build-controller
+  resources:
+  - serviceaccounts
+  verbs:
+  - delete
+  - patch
+  - update
 - apiGroups:
   - operator.shipwright.io
   resources:
   - shipwrightbuilds
   verbs:
-  - create
-  - delete
   - get
   - list
   - patch
@@ -105,6 +111,14 @@ rules:
   - patch
   - update
 - apiGroups:
+  - operator.tekton.dev
+  resources:
+  - tektonconfigs
+  verbs:
+  - create
+  - get
+  - list
+- apiGroups:
   - rbac.authorization.k8s.io
   resources:
   - clusterrolebindings
@@ -143,27 +157,40 @@ rules:
   - patch
   - update
 - apiGroups:
-  - shipwright.io
+  - rbac.authorization.k8s.io
   resources:
-  - '*'
+  - rolebindings
   verbs:
   - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
-  - tekton.dev
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - shipwright-build-controller
   resources:
-  - taskruns
-  - tasks
+  - rolebindings
   verbs:
-  - create
   - delete
-  - get
-  - list
   - patch
   - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  verbs:
+  - create
+  - get
+  - list
   - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - shipwright-build-controller
+  resources:
+  - roles
+  verbs:
+  - delete
+  - patch
+  - update

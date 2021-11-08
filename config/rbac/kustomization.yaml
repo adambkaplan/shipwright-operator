@@ -3,10 +3,10 @@ resources:
 - role_binding.yaml
 - leader_election_role.yaml
 - leader_election_role_binding.yaml
-- tektonconfig_operator_role.yaml
-- tektonconfig_operator_rolebinding.yaml
-- namespace_role.yaml
-- namespace_rolebinding.yaml
+- shipwright_build_controller_leader_election_role.yaml
+- shipwright_build_controller_leader_election_role_binding.yaml
+- shipwright_build_controller_role.yaml
+- shipwright_build_controller_role_binding.yaml
 # Comment the following 4 lines if you want to disable
 # the auth proxy (https://github.com/brancz/kube-rbac-proxy)
 # which protects your /metrics endpoint.
