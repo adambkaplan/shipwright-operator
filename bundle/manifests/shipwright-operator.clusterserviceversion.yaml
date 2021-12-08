@@ -325,6 +325,18 @@ spec:
           - patch
           - update
         - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - operator.shipwright.io
           resources:
           - shipwrightbuilds
@@ -351,6 +363,18 @@ spec:
           - patch
           - update
         - apiGroups:
+          - operator.tekton.dev
+          resources:
+          - tektonconfigs
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - rbac.authorization.k8s.io
           resources:
           - clusterrolebindings
@@ -388,18 +412,6 @@ spec:
           - delete
           - patch
           - update
-        - apiGroups:
-          - ""
-          resources:
-          - namespaces
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
         - apiGroups:
           - authentication.k8s.io
           resources:
@@ -412,18 +424,6 @@ spec:
           - subjectaccessreviews
           verbs:
           - create
-        - apiGroups:
-          - operator.tekton.dev
-          resources:
-          - tektonconfigs
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
         serviceAccountName: shipwright-operator
       deployments:
       - name: shipwright-operator
