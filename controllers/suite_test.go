@@ -146,6 +146,27 @@ func createShipwrightBuild(ctx context.Context, targetNamespace string) *operato
 	return build
 }
 
+// deleteShipwrightBuild tears down the given ShipwrightBuild instance.
+func deleteShipwrightBuild(ctx context.Context, build *operatorv1alpha1.ShipwrightBuild) {
+	By("deleting the ShipwrightBuild instance")
+	namespacedName := types.NamespacedName{Name: build.Name}
+	err := k8sClient.Get(ctx, namespacedName, build)
+	if errors.IsNotFound(err) {
+		return
+	}
+	Expect(err).NotTo(HaveOccurred())
+
+	err = k8sClient.Delete(ctx, build, &client.DeleteOptions{})
+	// the delete e2e's can delete this object before this AfterEach runs
+	if errors.IsNotFound(err) {
+		return
+	}
+	Expect(err).NotTo(HaveOccurred())
+
+	By("waiting for ShipwrightBuild instance to be completely removed")
+	test.EventuallyRemoved(ctx, k8sClient, build)
+}
+
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 

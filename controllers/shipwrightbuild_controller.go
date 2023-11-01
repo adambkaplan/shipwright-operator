@@ -25,6 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/shipwright-io/operator/api/v1alpha1"
+	"github.com/shipwright-io/operator/pkg/buildstrategy"
 	"github.com/shipwright-io/operator/pkg/certmanager"
 	"github.com/shipwright-io/operator/pkg/common"
 	"github.com/shipwright-io/operator/pkg/tekton"
@@ -53,10 +54,11 @@ type ShipwrightBuildReconciler struct {
 	CRDClient            crdclientv1.ApiextensionsV1Interface
 	TektonOperatorClient tektonoperatorv1alpha1client.OperatorV1alpha1Interface
 
-	Logger         logr.Logger           // decorated logger
-	Scheme         *runtime.Scheme       // runtime scheme
-	Manifest       manifestival.Manifest // release manifests render
-	TektonManifest manifestival.Manifest // Tekton release manifest render
+	Logger                logr.Logger           // decorated logger
+	Scheme                *runtime.Scheme       // runtime scheme
+	Manifest              manifestival.Manifest // release manifests render
+	TektonManifest        manifestival.Manifest // Tekton release manifest render
+	BuildStrategyManifest manifestival.Manifest // Build strategies manifest to render
 }
 
 // setFinalizer append finalizer on the resource, and uses local client to update it immediately.
@@ -229,6 +231,9 @@ func (r *ShipwrightBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		logger.Error(err, "setting the finalizer")
 		return RequeueWithError(err)
 	}
+
+	requeue, err = buildstrategy.ReconcileBuildStrategies(ctx, r.CRDClient, logger, r.BuildStrategyManifest)
+
 	apimeta.SetStatusCondition(&b.Status.Conditions, metav1.Condition{
 		Type:    ConditionReady,
 		Status:  metav1.ConditionTrue,

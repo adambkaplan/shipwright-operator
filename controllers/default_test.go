@@ -7,9 +7,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/shipwright-io/operator/api/v1alpha1"
@@ -53,23 +51,7 @@ var _ = g.Describe("Reconcile default ShipwrightBuild installation", func() {
 	})
 
 	g.AfterEach(func(ctx g.SpecContext) {
-		g.By("deleting the ShipwrightBuild instance")
-		namespacedName := types.NamespacedName{Name: build.Name}
-		err := k8sClient.Get(ctx, namespacedName, build)
-		if errors.IsNotFound(err) {
-			return
-		}
-		o.Expect(err).NotTo(o.HaveOccurred())
-
-		err = k8sClient.Delete(ctx, build, &client.DeleteOptions{})
-		// the delete e2e's can delete this object before this AfterEach runs
-		if errors.IsNotFound(err) {
-			return
-		}
-		o.Expect(err).NotTo(o.HaveOccurred())
-
-		g.By("waiting for ShipwrightBuild instance to be completely removed")
-		test.EventuallyRemoved(ctx, k8sClient, build)
+		deleteShipwrightBuild(ctx, build)
 
 		g.By("checking that the shipwright-build-controller deployment has been removed")
 		deployment := baseDeployment.DeepCopy()
