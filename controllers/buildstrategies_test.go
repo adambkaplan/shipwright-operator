@@ -1,9 +1,14 @@
 package controllers
 
 import (
-	. "github.com/onsi/ginkgo/v2"
+	"fmt"
 
+	. "github.com/onsi/ginkgo/v2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/shipwright-io/build/pkg/apis/build/v1beta1"
 	"github.com/shipwright-io/operator/api/v1alpha1"
+	"github.com/shipwright-io/operator/test"
 )
 
 var _ = Describe("Install embedded build strategies", func() {
@@ -13,15 +18,22 @@ var _ = Describe("Install embedded build strategies", func() {
 	BeforeEach(func(ctx SpecContext) {
 		setupTektonCRDs(ctx)
 		build = createShipwrightBuild(ctx, "shipwright")
+		test.CRDEventuallyExists(ctx, k8sClient, "clusterbuildstrategies.shipwright.io")
 	})
 
 	When("the install build strategies feature is enabled", func() {
 
-		It("applies the embedded build strategy manifests to the cluster", func() {
-			// expectedBuildStrategies := parseBuildStrategyNames()
-			// for _, strategy := range expectedBuildStrategies {
-			// 	strategyObj := &v1beta1.ClusterBuildStrategy{}
-			// }
+		It("applies the embedded build strategy manifests to the cluster", func(ctx SpecContext) {
+			expectedBuildStrategies := parseBuildStrategyNames()
+			for _, strategy := range expectedBuildStrategies {
+				strategyObj := &v1beta1.ClusterBuildStrategy{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: strategy,
+					},
+				}
+				By(fmt.Sprintf("checking for build strategy %q", strategy))
+				test.EventuallyExists(ctx, k8sClient, strategyObj)
+			}
 
 		})
 	})

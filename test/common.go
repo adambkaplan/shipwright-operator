@@ -6,6 +6,7 @@ import (
 
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -25,6 +26,10 @@ func EventuallyExists(ctx context.Context, k8sClient client.Client, obj client.O
 		}
 		err := k8sClient.Get(ctx, key, obj)
 		if errors.IsNotFound(err) {
+			return false
+		}
+		if meta.IsNoMatchError(err) {
+			// For CRDs created by the operator, we may need to wait.
 			return false
 		}
 		o.Expect(err).NotTo(o.HaveOccurred())
