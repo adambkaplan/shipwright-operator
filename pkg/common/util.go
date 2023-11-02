@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"path/filepath"
+
 	"github.com/go-logr/logr"
 	mfc "github.com/manifestival/controller-runtime-client"
 	"github.com/manifestival/manifestival"
@@ -18,7 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -26,7 +27,7 @@ import (
 func SetupManifestival(client client.Client, manifestFile string, logger logr.Logger) (manifestival.Manifest, error) {
 	mfclient := mfc.NewClient(client)
 
-	dataPath, err := koDataPath()
+	dataPath, err := KoDataPath()
 	if err != nil {
 		return manifestival.Manifest{}, err
 	}
@@ -34,8 +35,8 @@ func SetupManifestival(client client.Client, manifestFile string, logger logr.Lo
 	return manifestival.NewManifest(manifest, manifestival.UseClient(mfclient), manifestival.UseLogger(logger))
 }
 
-// koDataPath retrieve the data path environment variable, returning error when not found.
-func koDataPath() (string, error) {
+// KoDataPath retrieve the data path environment variable, returning error when not found.
+func KoDataPath() (string, error) {
 	dataPath, exists := os.LookupEnv(koDataPathEnv)
 	if !exists {
 		return "", fmt.Errorf("'%s' is not set", koDataPathEnv)
