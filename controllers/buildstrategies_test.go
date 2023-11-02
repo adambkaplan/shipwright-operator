@@ -1,14 +1,17 @@
 package controllers
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 
 	"github.com/shipwright-io/build/pkg/apis/build/v1beta1"
 	"github.com/shipwright-io/operator/api/v1alpha1"
@@ -76,6 +79,10 @@ func parseBuildStrategyNames() ([]string, error) {
 }
 
 func decodeYaml(path string, obj *v1beta1.ClusterBuildStrategy) error {
-	obj.Name = filepath.Base(path)
-	return nil
+	yaml, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewBuffer(yaml), 16)
+	return decoder.Decode(obj)
 }
