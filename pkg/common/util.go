@@ -12,7 +12,6 @@ import (
 	"github.com/go-logr/logr"
 	mfc "github.com/manifestival/controller-runtime-client"
 	"github.com/manifestival/manifestival"
-	mf "github.com/manifestival/manifestival"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	crdclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
@@ -23,15 +22,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// setupManifestival instantiate manifestival
-func SetupManifestival(client client.Client, manifestFile string, logger logr.Logger) (manifestival.Manifest, error) {
+// SetupManifestival instantiates a Manifestival instance for the provided file or directory
+func SetupManifestival(client client.Client, fileOrDir string, logger logr.Logger) (manifestival.Manifest, error) {
 	mfclient := mfc.NewClient(client)
 
 	dataPath, err := KoDataPath()
 	if err != nil {
 		return manifestival.Manifest{}, err
 	}
-	manifest := filepath.Join(dataPath, manifestFile)
+	manifest := filepath.Join(dataPath, fileOrDir)
 	return manifestival.NewManifest(manifest, manifestival.UseClient(mfclient), manifestival.UseLogger(logger))
 }
 
@@ -83,7 +82,7 @@ func ToLowerCaseKeys(keyValues map[string]string) map[string]string {
 }
 
 // deploymentImages replaces container and env vars images.
-func DeploymentImages(images map[string]string) mf.Transformer {
+func DeploymentImages(images map[string]string) manifestival.Transformer {
 	return func(u *unstructured.Unstructured) error {
 		if u.GetKind() != "Deployment" {
 			return nil
@@ -154,11 +153,11 @@ func BoolFromEnvVar(envVar string) bool {
 	return false
 }
 
-// injectAnnotations adds annotation key:value to a resource annotations
+// InjectAnnotations adds annotation key:value to a resource annotations
 // overwritePolicy (Retain/Overwrite) decides whehther to overwrite an already existing annotation
 // []kinds specify the Kinds on which the label should be applied
 // if len(kinds) = 0, label will be apllied to all/any resources irrespective of its Kind
-func InjectAnnotations(key, value string, overwritePolicy int, kinds ...string) mf.Transformer {
+func InjectAnnotations(key, value string, overwritePolicy int, kinds ...string) manifestival.Transformer {
 	return func(u *unstructured.Unstructured) error {
 		kind := u.GetKind()
 		if len(kinds) != 0 && !itemInSlice(kind, kinds) {
