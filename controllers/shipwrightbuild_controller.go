@@ -7,6 +7,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 
 	"github.com/go-logr/logr"
 	"github.com/manifestival/manifestival"
@@ -197,6 +198,11 @@ func (r *ShipwrightBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			logger.Info("Finalizers removed, deletion of manifests completed!")
 			return NoRequeue()
 		}
+		logger.Info("Deleting cluster build strategies")
+		if err := r.BuildStrategyManifest.Delete(); err != nil {
+			logger.Error(err, "deleting cluster build strategies")
+			return RequeueWithError(err)
+		}
 
 		logger.Info("Deleting manifests...")
 		if err := manifest.Delete(); err != nil {
@@ -232,7 +238,27 @@ func (r *ShipwrightBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return RequeueWithError(err)
 	}
 
-	requeue, err = buildstrategy.ReconcileBuildStrategies(ctx, r.CRDClient, logger, r.BuildStrategyManifest)
+	requeue, err = buildstrategy.ReconcileBuildStrategies(ctx,
+		r.CRDClient,
+		logger,
+		r.BuildStrategyManifest)
+	if err != nil {
+		logger.Error(err, "reconcile cluster build strategies")
+		return RequeueWithError(err)
+	}
+	if requeue {
+		logger.Info("requeue waiting for cluster build strategy preconditions")
+		apimeta.SetStatusCondition(&b.Status.Conditions, metav1.Condition{
+			Type:    ConditionReady,
+			Status:  metav1.ConditionUnknown,
+			Reason:  "ClusterBuildStrategiesWaiting",
+			Message: "Waiting for cluster build strategies to be deployed",
+		})
+		if updateErr := r.Client.Status().Update(ctx, b); updateErr != nil {
+			return RequeueWithError(err)
+		}
+		return Requeue()
+	}
 
 	apimeta.SetStatusCondition(&b.Status.Conditions, metav1.Condition{
 		Type:    ConditionReady,
@@ -252,7 +278,14 @@ func (r *ShipwrightBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 func (r *ShipwrightBuildReconciler) setupManifestival() error {
 	var err error
 	r.Manifest, err = common.SetupManifestival(r.Client, "release.yaml", false, r.Logger)
-	return err
+	if err != nil {
+		return err
+	}
+	r.BuildStrategyManifest, err = common.SetupManifestival(r.Client, filepath.Join("samples", "buildstrategy"), true, r.Logger)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager, by instantiating Manifestival and
