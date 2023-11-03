@@ -251,7 +251,7 @@ func (r *ShipwrightBuildReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 // setupManifestival instantiate manifestival with local controller attributes, as well as tekton prereqs.
 func (r *ShipwrightBuildReconciler) setupManifestival() error {
 	var err error
-	r.Manifest, err = common.SetupManifestival(r.Client, "release.yaml", r.Logger)
+	r.Manifest, err = common.SetupManifestival(r.Client, "release.yaml", false, r.Logger)
 	return err
 }
 

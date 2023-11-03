@@ -23,5 +23,10 @@ func ReconcileBuildStrategies(ctx context.Context, crdClient crdclientv1.Apiexte
 	if !crdExists {
 		return true, nil
 	}
+	// Apply the provided manifest containing the build strategies
+	err = manifest.Apply()
+	if err != nil {
+		return true, err
+	}
 	return false, nil
 }

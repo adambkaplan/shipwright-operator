@@ -1,11 +1,11 @@
-# This Build Strategy will intentionally fail if the image has any
-# critical CVEs. It will not be pushed into the destination registry
-# if any critical vulnerabilities are found.
 ---
 apiVersion: shipwright.io/v1beta1
 kind: ClusterBuildStrategy
 metadata:
   name: kaniko-trivy
+# This Build Strategy will intentionally fail if the image has any
+# critical CVEs. It will not be pushed into the destination registry
+# if any critical vulnerabilities are found.
 spec:
   volumes:
     - name: layout

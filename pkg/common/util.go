@@ -23,7 +23,7 @@ import (
 )
 
 // SetupManifestival instantiates a Manifestival instance for the provided file or directory
-func SetupManifestival(client client.Client, fileOrDir string, logger logr.Logger) (manifestival.Manifest, error) {
+func SetupManifestival(client client.Client, fileOrDir string, recurse bool, logger logr.Logger) (manifestival.Manifest, error) {
 	mfclient := mfc.NewClient(client)
 
 	dataPath, err := KoDataPath()
@@ -31,7 +31,13 @@ func SetupManifestival(client client.Client, fileOrDir string, logger logr.Logge
 		return manifestival.Manifest{}, err
 	}
 	manifest := filepath.Join(dataPath, fileOrDir)
-	return manifestival.NewManifest(manifest, manifestival.UseClient(mfclient), manifestival.UseLogger(logger))
+	var src manifestival.Source
+	if recurse {
+		src = manifestival.Recursive(manifest)
+	} else {
+		src = manifestival.Path(manifest)
+	}
+	return manifestival.ManifestFrom(src, manifestival.UseClient(mfclient), manifestival.UseLogger(logger))
 }
 
 // KoDataPath retrieve the data path environment variable, returning error when not found.

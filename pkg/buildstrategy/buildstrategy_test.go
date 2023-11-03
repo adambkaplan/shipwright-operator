@@ -7,21 +7,27 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"github.com/shipwright-io/operator/pkg/common"
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsfake "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/fake"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	buildv1beta1 "github.com/shipwright-io/build/pkg/apis/build/v1beta1"
+	"github.com/shipwright-io/operator/pkg/common"
+	"github.com/shipwright-io/operator/test"
 )
 
 func TestReconcileBuildStrategies(t *testing.T) {
 
 	cases := []struct {
-		name                  string
-		installShipwrightCRDs bool
-		expectRequeue         bool
+		name                      string
+		installShipwrightCRDs     bool
+		expectRequeue             bool
+		expectStrategiesInstalled bool
 	}{
 		{
 			name:                  "no Shipwright CRDs",
@@ -29,9 +35,10 @@ func TestReconcileBuildStrategies(t *testing.T) {
 			expectRequeue:         true,
 		},
 		{
-			name:                  "install Shipwright CRDs",
-			installShipwrightCRDs: true,
-			expectRequeue:         false,
+			name:                      "install Shipwright CRDs",
+			installShipwrightCRDs:     true,
+			expectRequeue:             false,
+			expectStrategiesInstalled: true,
 		},
 	}
 
@@ -54,13 +61,32 @@ func TestReconcileBuildStrategies(t *testing.T) {
 				})
 			}
 			crdClient := apiextensionsfake.NewSimpleClientset(objects...)
-			k8sClient := fake.NewClientBuilder().Build()
+			schemeBuilder := runtime.NewSchemeBuilder(scheme.AddToScheme, buildv1beta1.AddToScheme)
+			scheme := runtime.NewScheme()
+			err := schemeBuilder.AddToScheme(scheme)
+			o.Expect(err).NotTo(HaveOccurred(), "create k8s client scheme")
+			k8sClient := fake.NewClientBuilder().WithScheme(scheme).Build()
 			log := zap.New()
-			manifests, err := common.SetupManifestival(k8sClient, filepath.Join("samples", "buildstrategy"), log)
+			manifests, err := common.SetupManifestival(k8sClient, filepath.Join("samples", "buildstrategy"), true, log)
 			o.Expect(err).NotTo(HaveOccurred(), "setting up Manifestival")
 			requeue, err := ReconcileBuildStrategies(ctx, crdClient.ApiextensionsV1(), log, manifests)
 			o.Expect(err).NotTo(HaveOccurred(), "reconciling build strategies")
 			o.Expect(requeue).To(BeEquivalentTo(tc.expectRequeue), "check reconcile requeue")
+
+			if tc.expectStrategiesInstalled {
+				strategies, err := test.ParseBuildStrategyNames()
+				t.Logf("build strategies: %s", strategies)
+				o.Expect(err).NotTo(HaveOccurred(), "parse build strategy names")
+				for _, strategy := range strategies {
+					obj := &buildv1beta1.ClusterBuildStrategy{
+						ObjectMeta: v1.ObjectMeta{
+							Name: strategy,
+						},
+					}
+					err := k8sClient.Get(ctx, client.ObjectKeyFromObject(obj), obj)
+					o.Expect(err).NotTo(HaveOccurred(), "get ClusterBuildStrategy %s", strategy)
+				}
+			}
 		})
 	}
 }
