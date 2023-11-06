@@ -18,7 +18,7 @@ import (
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/shipwright-io/build/pkg/apis/build/v1beta1"
+	"github.com/shipwright-io/build/pkg/apis/build/v1alpha1"
 	"github.com/shipwright-io/operator/pkg/common"
 )
 
@@ -112,7 +112,7 @@ func ParseBuildStrategyNames() ([]string, error) {
 		if d.IsDir() {
 			return nil
 		}
-		clusterBuildStrategy := &v1beta1.ClusterBuildStrategy{}
+		clusterBuildStrategy := &v1alpha1.ClusterBuildStrategy{}
 		decodeErr := decodeYaml(path, clusterBuildStrategy)
 		if decodeErr != nil {
 			return decodeErr
@@ -126,7 +126,7 @@ func ParseBuildStrategyNames() ([]string, error) {
 	return sampleNames, nil
 }
 
-func decodeYaml(path string, obj *v1beta1.ClusterBuildStrategy) error {
+func decodeYaml(path string, obj *v1alpha1.ClusterBuildStrategy) error {
 	yaml, err := os.ReadFile(path)
 	if err != nil {
 		return err
