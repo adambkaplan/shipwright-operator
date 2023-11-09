@@ -2,7 +2,7 @@
 apiVersion: shipwright.io/v1alpha1
 kind: ClusterBuildStrategy
 metadata:
-  name: buildah-strategy-managed-push
+  name: buildah
 spec:
   buildSteps:
     - name: build-and-push
@@ -157,7 +157,7 @@ spec:
         - --context
         - $(params.shp-source-context)
         - --dockerfile
-        - $(build.dockerfile)
+        - $(params.dockerfile)
         - --image
         - $(params.shp-output-image)
         - --build-args
@@ -192,8 +192,12 @@ spec:
       description: The registries for searching short name images such as `golang:latest`.
       type: array
       defaults:
-        - docker.io
+        - registry.redhat.io
         - quay.io
+    - name: dockerfile
+      description: The path to the Dockerfile to be used for building the image.
+      type: string
+      default: "Dockerfile"
     - name: storage-driver
       description: "The storage driver to use, such as 'overlay' or 'vfs'"
       type: string
