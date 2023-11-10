@@ -33,8 +33,10 @@ spec:
       - args:
         - --leader-elect
         env:
+        - name: PLATFORM
+          value: openshift
         - name: USE_MANAGED_WEBHOOK_CERTS
-          value: "true"
+          value: "false"
         image: ko://github.com/shipwright-io/operator
         name: manager
         securityContext:

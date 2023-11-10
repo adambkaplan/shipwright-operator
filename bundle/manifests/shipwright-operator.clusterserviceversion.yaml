@@ -24,7 +24,7 @@ metadata:
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/shipwright-io/operator
     support: The Shipwright Contributors
-  name: shipwright-operator.v0.13.0-rc0
+  name: shipwright-operator.v0.13.1-rc4
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -40,9 +40,6 @@ spec:
     - kind: TektonConfig
       name: tektonconfigs.operator.tekton.dev
       version: v1alpha1
-    - kind: Certificate
-      name: certificates.cert-manager.io
-      version: v1
   description: |
     Shipwright is a framework for building container images on Kubernetes.
 
@@ -805,8 +802,10 @@ spec:
                 - --metrics-bind-address=127.0.0.1:8080
                 - --leader-elect
                 env:
+                - name: PLATFORM
+                  value: openshift
                 - name: USE_MANAGED_WEBHOOK_CERTS
-                  value: "true"
+                  value: "false"
                 image: ko://github.com/shipwright-io/operator
                 livenessProbe:
                   httpGet:
@@ -896,4 +895,4 @@ spec:
   provider:
     name: The Shipwright Contributors
     url: https://shipwright.io
-  version: 0.13.0-rc0
+  version: 0.13.1-rc4

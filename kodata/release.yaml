@@ -149,6 +149,8 @@ metadata:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: "shipwright-build-webhook-cert"
   name: shp-build-webhook
   namespace: shipwright-build
 spec:
