@@ -105,11 +105,11 @@ spec:
           fi
           cd "${context}"
 
-          # Verify the existence of the Dockerfile
+          # Verify the existence of the Containerfile
           if [ ! -f "${dockerfile}" ]; then
-            echo -e "The Dockerfile '${dockerfile}' does not exist."
-            echo -n "DockerfileNotFound" > '$(results.shp-error-reason.path)'
-            echo -n "The Dockerfile '${dockerfile}' does not exist." > '$(results.shp-error-message.path)'
+            echo -e "The Containerfile '${dockerfile}' does not exist."
+            echo -n "ContainerfileNotFound" > '$(results.shp-error-reason.path)'
+            echo -n "The Containerfile '${dockerfile}' does not exist." > '$(results.shp-error-message.path)'
             exit 1
           fi
 
@@ -157,7 +157,7 @@ spec:
         - --context
         - $(params.shp-source-context)
         - --dockerfile
-        - $(params.dockerfile)
+        - $(params.containerfile)
         - --image
         - $(params.shp-output-image)
         - --build-args
@@ -194,8 +194,8 @@ spec:
       defaults:
         - registry.redhat.io
         - quay.io
-    - name: dockerfile
-      description: The path to the Dockerfile to be used for building the image.
+    - name: containerfile
+      description: The path to the Dockerfile or Containerfile to be used for building the image.
       type: string
       default: "Dockerfile"
     - name: storage-driver
