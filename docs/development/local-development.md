@@ -55,6 +55,12 @@ Next, use the `make deploy` command with appropriate `IMAGE_REPO` and `VERSION` 
 $ make deploy IMAGE_REPO="<IMAGE_REGISTRY>/<USERNAME>" VERSION="<VERSION>"
 ```
 
+When deploying on OpenShift, set the `PLATFORM` make variable to `openshift`:
+
+```bash
+$ make deploy PLATFORM="openshift"
+```
+
 _Note:_
 
 Scripts in `hack` folder may require `sed` (GNU), therefore in platforms other than Linux you may have it with a different name. For instance, on macOS it's usually named `gsed`, in this case provide the `SED_BIN` make variable with the alternative name.

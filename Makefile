@@ -185,12 +185,14 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 
-deploy: manifests kustomize ko ## Deploy controller to the K8s cluster specified in ~/.kube/config. This will also build and push the operator image.
-	$(KUSTOMIZE) build config/default | KO_DOCKER_REPO=${IMAGE_REPO} $(KO) apply ${KO_OPTS} -f -
+PLATFORM ?= default
+
+deploy: manifests kustomize ko ## Deploy controller to the K8s cluster specified in ~/.kube/config. This will also build and push the operator image. To deploy on OpenShift, set the PLATFORM variable to "openshift".
+	$(KUSTOMIZE) build config/${PLATFORM} | KO_DOCKER_REPO=${IMAGE_REPO} $(KO) apply ${KO_OPTS} -f -
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/default | $(KUBECTL_BIN) delete --ignore-not-found=$(ignore-not-found) -f -
+	$(KUSTOMIZE) build config/${PLATFORM} | $(KUBECTL_BIN) delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: clean
 clean: ## Cleans out all downloaded dependencies for development and testing
